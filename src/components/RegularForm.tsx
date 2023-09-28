@@ -1,65 +1,59 @@
-import  { useState, ChangeEvent, FormEvent } from 'react';
+import { useForm, SubmitHandler } from "react-hook-form";
+import Input from "./Input";
+import { emailRegex, passwordRegex } from "../utils/regex";
+import { ErrorMessage } from "@hookform/error-message";
 
-interface FormData {
+export interface UserInterface {
   username: string;
   email: string;
-  password:string;
+  password: string;
 }
 
 function RegularForm() {
-  const [formData, setFormData] = useState<FormData>({
-    username: '',
-    email: '',
-    password: '',
-  });
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<UserInterface>({ mode: "onChange", criteriaMode: "all" });
 
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    alert(JSON.stringify(formData));
+  const onSubmit: SubmitHandler<UserInterface> = (data, e) => {
+    e?.defaultPrevented;
+    alert(JSON.stringify(data));
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-        <h1>Change Me To React Hook Form</h1>
-      <div>
-        <input
-          type="text"
-          id="username"
-          name="username"
-          placeholder='Enter UserName'
-          value={formData.username}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <input
-          type="text"
-          id="email"
-          name="email"
-          placeholder='Enter Email'
-          value={formData.email}
-          onChange={handleChange}
-        />
-      </div>
-      <div>
-        <input
-          type="text"
-          id="password"
-          name="password"
-          placeholder='Enter Password'
-          value={formData.password}
-          onChange={handleChange}
-        />
-      </div>
-      <button type="submit">Submit</button>
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <h1>Change Me To React Hook Form</h1>
+
+      <Input
+        error={errors.username}
+        label="username"
+        validations={register("username", {
+          required: "Username is required",
+          minLength: { value: 2, message: "UserName to short" },
+        })}
+      />
+
+      <Input
+        label="email"
+        error={errors.email}
+        validations={register("email", {
+          required: "Email is required",
+          pattern: { value: emailRegex, message: "Email not valid" },
+        })}
+      />
+      <Input
+        label="password"
+        error={errors.password}
+        validations={register("password", {
+          pattern: { value: passwordRegex, message: "password not valid" },
+          required: "Password is required",
+        })}
+      />
+      <br />
+      <button type="submit" disabled={!isValid}>
+        Submit
+      </button>
     </form>
   );
 }
